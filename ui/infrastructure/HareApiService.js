@@ -41,7 +41,11 @@ export class HareApiService extends BaseApiService {
   /** @param {File} imageData @param {Object} config */
   async runPGDAttack(imageData, config) {
     const form = new FormData();
-    if (imageData) form.append('image', imageData);
+    if (imageData) {
+      form.append('image', imageData);
+    } else {
+      throw new Error('Attack image is required for real PGD evaluation');
+    }
     Object.entries(config).forEach(([k, v]) => form.append(k, String(v)));
     return this.#http.post('/api/attack/simulate', form);
   }
@@ -64,5 +68,39 @@ export class HareApiService extends BaseApiService {
   /** @param {Object} params */
   async updateParameters(params) {
     return this.#http.put('/api/system/parameters', params);
+  }
+
+  async getGAParameters() {
+    return this.#http.get('/api/system/parameters');
+  }
+
+  /** @param {string} versionId */
+  async activateModel(versionId) {
+    return this.#http.put(`/api/system/models/${encodeURIComponent(versionId)}/activate`, {});
+  }
+
+  async getThesisSummary() {
+    return this.#http.get('/api/metrics/thesis/summary');
+  }
+
+  async getThesisSweep() {
+    return this.#http.get('/api/metrics/thesis/sweep');
+  }
+
+  async getTradesBetaSweep() {
+    return this.#http.get('/api/metrics/thesis/trades-beta-sweep');
+  }
+
+  async getThesisExportJson() {
+    return this.#http.get('/api/metrics/thesis/export/json');
+  }
+
+  async getThesisExportCsv() {
+    return this.#http.get('/api/metrics/thesis/export/csv');
+  }
+
+  /** @param {string} baselineVersion @param {string} candidateVersion */
+  async getMetricsComparison(baselineVersion, candidateVersion) {
+    return this.#http.get(`/api/metrics/comparison/${encodeURIComponent(baselineVersion)}/${encodeURIComponent(candidateVersion)}`);
   }
 }

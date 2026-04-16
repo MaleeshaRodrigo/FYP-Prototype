@@ -7,11 +7,20 @@ import { BaseApiService } from './BaseApiService.js';
  */
 export class MockApiService extends BaseApiService {
   /** @type {Object} */ #fixtures;
+  /** @type {Object} */ #runtime;
 
   /** @param {Object} fixtures - pre-loaded fixture data */
   constructor(fixtures) {
     super();
     this.#fixtures = fixtures;
+    this.#runtime = {
+      activeModel: 'v8',
+      gaParameters: {
+        alpha: fixtures.gaParameters?.alpha ?? 0.5467,
+        tau: fixtures.gaParameters?.tau ?? 0.7671,
+        theta: fixtures.gaParameters?.theta ?? 0.3985
+      }
+    };
   }
 
   /** Simulates network latency (300–800ms). */
@@ -52,6 +61,9 @@ export class MockApiService extends BaseApiService {
   }
 
   async runPGDAttack(_imageData, config) {
+    if (!_imageData) {
+      throw new Error('Attack image is required for real PGD evaluation');
+    }
     await this.#delay();
     return {
       original_prediction: 'MEL',
@@ -96,19 +108,123 @@ export class MockApiService extends BaseApiService {
 
   async getModelRegistry() {
     await this.#delay();
+    const active = this.#runtime.activeModel;
     return [
-      { id: 'v8', label: 'Stage 2 v8 — PGD-AT (w_adv=0.05)', checkpoint: 'stage2_v8.pth', stage: 2, status: 'active', isActive: true, isPending: false },
-      { id: 'v7', label: 'Stage 2 v7 — PGD-AT (w_adv=0.15)', checkpoint: 'stage2_v7.pth', stage: 2, status: 'deprecated', isActive: false, isPending: false },
-      { id: 'v9-trades', label: 'Stage 3 v9 — TRADES', checkpoint: 'stage3_v9_trades.pth', stage: 3, status: 'pending', isActive: false, isPending: true }
+      { id: 'stage1', label: 'Stage 1 — Clean Baseline', checkpoint: 'stage1_baseline.pth', stage: 1, status: active === 'stage1' ? 'active' : 'deprecated', isActive: active === 'stage1', isPending: false },
+      { id: 'v8', label: 'Stage 2 v8 — PGD-AT (w_adv=0.05)', checkpoint: 'stage2_v8.pth', stage: 2, status: active === 'v8' ? 'active' : 'deprecated', isActive: active === 'v8', isPending: false },
+      { id: 'v9-trades', label: 'Stage 3 v9 — TRADES', checkpoint: 'stage3_v9_trades.pth', stage: 3, status: active === 'v9-trades' ? 'active' : 'pending', isActive: active === 'v9-trades', isPending: active !== 'v9-trades' }
     ];
   }
 
   async updateParameters(params) {
     await this.#delay();
+    this.#runtime.gaParameters = {
+      alpha: params.alpha,
+      tau: params.tau,
+      theta: params.theta
+    };
     return {
       success: true,
       applied_bal_acc: 0.7980,
-      ...params
+      ...params,
+      weight_cnn: params.alpha,
+      temperature: params.tau,
+      threshold: params.theta
+    };
+  }
+
+  async getGAParameters() {
+    await this.#delay();
+    const p = this.#runtime.gaParameters;
+    return {
+      success: true,
+      applied_bal_acc: 0.7980,
+      alpha: p.alpha,
+      tau: p.tau,
+      theta: p.theta,
+      weight_cnn: p.alpha,
+      temperature: p.tau,
+      threshold: p.theta
+    };
+  }
+
+  async activateModel(versionId) {
+    await this.#delay();
+    this.#runtime.activeModel = versionId;
+    return { success: true, activated: versionId };
+  }
+
+  async getThesisSummary() {
+    await this.#delay();
+    return {
+      stage1_clean_default: this.#fixtures.metrics.stage1,
+      stage2_clean_default: this.#fixtures.metrics.v8_clean,
+      stage2_clean_ga: this.#fixtures.metrics.v8_ga,
+      stage2_adv_ga: this.#fixtures.metrics.v8_adversarial
+    };
+  }
+
+  async getThesisSweep() {
+    await this.#delay();
+    return {
+      '0.0': { bal_acc: 0.7980, sens_mel: 0.7550, spec_nonmel: 0.8416, auc: 0.8711 },
+      '0.01': { bal_acc: 0.6320, sens_mel: 0.6110, spec_nonmel: 0.6530, auc: 0.6220 },
+      '0.02': { bal_acc: 0.5050, sens_mel: 0.5720, spec_nonmel: 0.4380, auc: 0.3520 },
+      '0.03': { bal_acc: 0.3771, sens_mel: 0.7204, spec_nonmel: 0.0339, auc: 0.1032 },
+      '0.06': { bal_acc: 0.2920, sens_mel: 0.6830, spec_nonmel: 0.0110, auc: 0.0660 }
+    };
+  }
+
+  async getTradesBetaSweep() {
+    await this.#delay();
+    return [
+      { beta: 1.0, cleanAUC: 0.8650, advBalAcc: 0.4250 },
+      { beta: 2.0, cleanAUC: 0.8500, advBalAcc: 0.5500 },
+      { beta: 3.0, cleanAUC: 0.8350, advBalAcc: 0.6500 },
+      { beta: 6.0, cleanAUC: 0.8000, advBalAcc: 0.7150 }
+    ];
+  }
+
+  async getThesisExportJson() {
+    await this.#delay();
+    return {
+      summary: await this.getThesisSummary(),
+      robustness_sweep: await this.getThesisSweep(),
+      trades_beta_sweep: await this.getTradesBetaSweep(),
+      comparisons: {
+        stage1_to_stage2_clean: await this.getMetricsComparison('stage1', 'v8_clean'),
+        stage2_clean_to_stage2_adv: await this.getMetricsComparison('v8_clean', 'v8_adversarial')
+      }
+    };
+  }
+
+  async getThesisExportCsv() {
+    await this.#delay();
+    return [
+      'Block,Threshold,AUC,BalancedAccuracy,MelanomaSensitivity,NonMelSpecificity',
+      'Stage 1 Clean,Default (0.5),0.8741,0.7983,0.7549,0.8416',
+      'Stage 2 Clean,Default (0.5),0.8711,0.7515,0.5573,0.9457',
+      'Stage 2 Clean,GA (theta),0.8711,0.7980,0.7550,0.8416',
+      'Stage 2 Adversarial,GA (theta) - Primary,,0.1432,0.085,'
+    ].join('\n');
+  }
+
+  async getMetricsComparison(baselineVersion, candidateVersion) {
+    await this.#delay();
+    const baseline = await this.getModelMetrics(baselineVersion);
+    const candidate = await this.getModelMetrics(candidateVersion);
+    const fields = ['auc', 'balancedAccuracy', 'melanomaSensitivity', 'nonMelSpecificity'];
+    const delta = Object.fromEntries(fields.map((field) => {
+      const a = baseline[field];
+      const b = candidate[field];
+      return [field, typeof a === 'number' && typeof b === 'number' ? Number((b - a).toFixed(4)) : null];
+    }));
+    return {
+      baselineVersion,
+      candidateVersion,
+      baseline,
+      candidate,
+      delta
     };
   }
 }

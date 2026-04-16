@@ -65,7 +65,7 @@ export class LoginView extends BaseView {
 
     const routeMap = {
       clinician: '#/clinical',
-      research: '#/research',
+      research: '#/thesis',
       admin: '#/admin',
       system: '#/system'
     };

@@ -16,7 +16,16 @@ export class StateStore {
     return {
       auth: { user: null, role: null, isAuthenticated: false },
       clinical: { currentResult: null, caseHistory: [], isLoading: false },
-      research: { metrics: {}, versionHistory: [], isLoading: false },
+      research: {
+        metrics: {},
+        versionHistory: [],
+        thesisSummary: null,
+        thesisSweep: null,
+        tradesBetaSweep: null,
+        comparison: null,
+        attackComparison: null,
+        isLoading: false
+      },
       admin: { usageStats: null, auditLog: [], modelHealth: null },
       system: { modelRegistry: [], gaParameters: null, runtimeHealth: null },
       ui: { activeRoute: null, error: null, notification: null }

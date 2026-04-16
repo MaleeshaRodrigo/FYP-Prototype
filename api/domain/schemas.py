@@ -55,6 +55,7 @@ class AttackRequest(BaseModel):
     epsilon: float = Field(default=0.01, gt=0, le=0.1)
     pgd_steps: int = Field(default=10, ge=1, le=100)
     pgd_alpha: float = Field(default=0.003, gt=0, le=0.01)
+    true_label: int | None = Field(default=None, ge=0, le=1)
 
 
 class AttackResponse(BaseModel):
@@ -66,6 +67,8 @@ class AttackResponse(BaseModel):
     pgd_steps: int
     attack_success: bool
     perturbation_l_inf: float
+    true_label: int | None = None
+    used_ga: bool = False
 
 
 class UsageStatsResponse(BaseModel):
@@ -100,6 +103,9 @@ class GAParametersResponse(BaseModel):
     alpha: float | None = None
     tau: float | None = None
     theta: float | None = None
+    weight_cnn: float | None = None
+    temperature: float | None = None
+    threshold: float | None = None
 
 
 class ModelRegistryEntry(BaseModel):

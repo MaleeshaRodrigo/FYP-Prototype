@@ -30,9 +30,13 @@ export class ResearchController extends BaseController {
   async init() {
     this._setLoading('research', true);
     try {
+      await this.loadTradesBetaSweep();
       await Promise.all([
         this.loadModelMetrics('v8'),
-        this.loadVersionHistory()
+        this.loadVersionHistory(),
+        this.loadThesisSummary(),
+        this.loadThesisSweep(),
+        this.loadMetricsComparison('stage1', 'v8_clean')
       ]);
     } finally {
       this._setLoading('research', false);
@@ -64,12 +68,15 @@ export class ResearchController extends BaseController {
   }
 
   /** @param {Object} config - attack parameters (epsilon, steps, alpha) */
-  async runAttackSimulation(config) {
+  async runAttackSimulation(config, imageFile) {
     try {
       this._validateAttackConfig(config);
+      if (!imageFile) {
+        throw new Error('Please select an image before running PGD attack.');
+      }
       this._setLoading('research', true);
       EventBus.emit('attack:started', { config });
-      const result = await this.#attackService.runPGDAttack(null, config);
+      const result = await this.#attackService.runPGDAttack(imageFile, config);
       this._store.setState({ research: { attackResult: result, isLoading: false } });
       EventBus.emit('attack:complete', { result });
     } catch (err) {
@@ -85,6 +92,42 @@ export class ResearchController extends BaseController {
     }
     if (config.pgd_steps < 1 || config.pgd_steps > 100) {
       throw new Error('PGD steps must be in [1, 100]');
+    }
+  }
+
+  async loadThesisSummary() {
+    try {
+      const summary = await this.#metricsService.getThesisSummary();
+      this._store.setState({ research: { thesisSummary: summary } });
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  async loadThesisSweep() {
+    try {
+      const sweep = await this.#metricsService.getThesisSweep();
+      this._store.setState({ research: { thesisSweep: sweep } });
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  async loadMetricsComparison(baselineVersion, candidateVersion) {
+    try {
+      const comparison = await this.#metricsService.getMetricsComparison(baselineVersion, candidateVersion);
+      this._store.setState({ research: { comparison } });
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  async loadTradesBetaSweep() {
+    try {
+      const tradesBetaSweep = await this.#metricsService.getTradesBetaSweep();
+      this._store.setState({ research: { tradesBetaSweep } });
+    } catch (err) {
+      this.handleError(err);
     }
   }
 }

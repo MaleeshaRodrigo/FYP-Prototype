@@ -81,6 +81,8 @@
 html {
   font-size: 100%;
   -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -388,6 +390,12 @@ a:hover { color: var(--color-primary-hover); }
   overflow: hidden;
   box-shadow: var(--shadow-md);
 }
+.gradcam-viewer__canvas-wrapper--standalone {
+  width: 224px;
+  height: 224px;
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+}
 .gradcam-viewer__original {
   display: block;
   max-width: 100%;
@@ -398,6 +406,12 @@ a:hover { color: var(--color-primary-hover); }
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
+}
+.gradcam-viewer__overlay--standalone {
+  position: static;
+  width: 224px;
+  height: 224px;
+  display: block;
 }
 .gradcam-viewer__controls {
   display: flex;
@@ -623,6 +637,7 @@ tbody td {
   margin-bottom: var(--space-1);
 }
 .attack-form__field .input { width: 120px; }
+.attack-form__field--file .input { width: 260px; }
 .attack-result__card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -725,6 +740,45 @@ tbody td {
 .system-view__params { margin-bottom: var(--space-6); }
 .system-view__health { margin-bottom: var(--space-6); }
 
+/* --- Thesis View --- */
+.thesis-view__header { align-items: center; }
+.thesis-view__actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.thesis-view__summary,
+.thesis-view__delta {
+  margin-bottom: var(--space-6);
+}
+.thesis-view__exports {
+  margin-bottom: var(--space-6);
+}
+.thesis-view__charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+  margin-bottom: var(--space-6);
+}
+.thesis-view__charts-row--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.thesis-view__chart-slot {
+  min-width: 0;
+}
+.thesis-view__chart-slot .tradeoff-chart,
+.thesis-view__chart-slot .trades-chart {
+  height: auto;
+}
+.thesis-view__chart-slot .tradeoff-chart canvas,
+.thesis-view__chart-slot .trades-chart canvas {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 360px;
+  display: block;
+}
+
 /* --- Notification Toast --- */
 .notification-toast {
   position: fixed;
@@ -751,9 +805,13 @@ tbody td {
 @media (max-width: 768px) {
   .login-view__role-grid { grid-template-columns: 1fr; }
   .research-view__charts-row { grid-template-columns: 1fr; }
+  .thesis-view__charts-row { grid-template-columns: 1fr; }
+  .thesis-view__chart-slot .tradeoff-chart canvas,
+  .thesis-view__chart-slot .trades-chart canvas { max-height: 300px; }
   .research-view__kpis { grid-template-columns: 1fr 1fr; }
   .attack-form { flex-direction: column; align-items: stretch; }
   .attack-form__field .input { width: 100%; }
+  .thesis-view__actions { width: 100%; justify-content: flex-start; }
 }
 
 /* --- Print --- */

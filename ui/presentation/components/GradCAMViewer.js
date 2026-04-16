@@ -6,6 +6,7 @@ import { BaseComponent } from './BaseComponent.js';
 export class GradCAMViewer extends BaseComponent {
   #imageUrl;
   #heatmapData;
+  #showImage;
   /** @type {HTMLCanvasElement|null} */ #canvas = null;
 
   /**
@@ -14,16 +15,27 @@ export class GradCAMViewer extends BaseComponent {
    */
   constructor(container, { imageUrl, heatmapData }) {
     super(container);
-    this.#imageUrl = imageUrl;
+    this.#imageUrl = imageUrl ?? '';
     this.#heatmapData = heatmapData;
+    this.#showImage = Boolean(this.#imageUrl);
   }
 
   render() {
+    const wrapperClass = this.#showImage
+      ? 'gradcam-viewer__canvas-wrapper'
+      : 'gradcam-viewer__canvas-wrapper gradcam-viewer__canvas-wrapper--standalone';
+    const canvasClass = this.#showImage
+      ? 'gradcam-viewer__overlay'
+      : 'gradcam-viewer__overlay gradcam-viewer__overlay--standalone';
+    const imageMarkup = this.#showImage
+      ? '<img class="gradcam-viewer__original" src="' + this.#imageUrl + '" alt="Original dermoscopic image" />'
+      : '';
+
     return `
       <div class="gradcam-viewer" role="img" aria-label="GradCAM Heatmap Overlay">
-        <div class="gradcam-viewer__canvas-wrapper">
-          <img class="gradcam-viewer__original" src="${this.#imageUrl}" alt="Original dermoscopic image" />
-          <canvas class="gradcam-viewer__overlay" width="224" height="224"></canvas>
+        <div class="${wrapperClass}">
+          ${imageMarkup}
+          <canvas class="${canvasClass}" width="224" height="224"></canvas>
         </div>
         <div class="gradcam-viewer__controls">
           <label class="gradcam-viewer__slider-label" for="gradcam-opacity">
@@ -40,6 +52,15 @@ export class GradCAMViewer extends BaseComponent {
   mount() {
     super.mount();
     this.#canvas = this._container.querySelector('.gradcam-viewer__overlay');
+
+    const image = this._container.querySelector('.gradcam-viewer__original');
+    if (image) {
+      image.addEventListener('error', () => {
+        this.#showImage = false;
+        this.update();
+      }, { once: true });
+    }
+
     this._drawHeatmap(0.5);
   }
 
@@ -50,6 +71,8 @@ export class GradCAMViewer extends BaseComponent {
   _drawHeatmap(opacity) {
     if (!this.#canvas || !this.#heatmapData) return;
     const ctx = this.#canvas.getContext('2d');
+    if (!ctx) return;
+
     const rows = this.#heatmapData.length;
     const cols = this.#heatmapData[0]?.length ?? 0;
     if (rows === 0 || cols === 0) return;

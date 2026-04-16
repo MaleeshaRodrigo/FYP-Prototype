@@ -44,19 +44,17 @@ export class SystemController extends BaseController {
 
   async loadGAParameters() {
     try {
-      const data = await this.#systemService.getModelMetrics('v8_ga');
-      const gaData = await this.#systemService.updateParameters
-        ? null : null;
-      // Load GA parameters from fixture/API if available
+      const data = await this.#systemService.getGAParameters();
+      this._store.setState({ system: { gaParameters: GAParameters.fromApiResponse(data) } });
     } catch (err) {
-      // GA params may be loaded separately; non-fatal
+      this.handleError(err);
     }
   }
 
   /** @param {string} versionId */
   async activateModel(versionId) {
     try {
-      await this.#systemService.updateParameters({ activeModel: versionId });
+      await this.#systemService.activateModel(versionId);
       EventBus.emit('model:activated', { versionId });
       EventBus.emit('notification', { type: 'success', message: `Model ${versionId} activated` });
       await this.loadModelRegistry();

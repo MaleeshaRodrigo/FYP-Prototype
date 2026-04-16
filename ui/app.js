@@ -7,11 +7,13 @@ import { Router } from './application/Router.js';
 import { LoginView } from './presentation/views/LoginView.js';
 import { ClinicalView } from './presentation/views/ClinicalView.js';
 import { ResearchView } from './presentation/views/ResearchView.js';
+import { ThesisView } from './presentation/views/ThesisView.js';
 import { AdminView } from './presentation/views/AdminView.js';
 import { SystemView } from './presentation/views/SystemView.js';
 
 import { ClinicalController } from './application/ClinicalController.js';
 import { ResearchController } from './application/ResearchController.js';
+import { ThesisController } from './application/ThesisController.js';
 import { AdminController } from './application/AdminController.js';
 import { SystemController } from './application/SystemController.js';
 
@@ -42,6 +44,7 @@ async function bootstrap() {
 
   router.register('#/login', LoginView, null, null);
   router.register('#/clinical', ClinicalView, ClinicalController, 'clinician');
+  router.register('#/thesis', ThesisView, ThesisController, 'research');
   router.register('#/research', ResearchView, ResearchController, 'research');
   router.register('#/admin', AdminView, AdminController, 'admin');
   router.register('#/system', SystemView, SystemController, 'system');

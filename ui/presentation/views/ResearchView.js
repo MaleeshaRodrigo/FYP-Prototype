@@ -17,7 +17,10 @@ export class ResearchView extends BaseView {
         <header class="view-header">
           <h2 class="view-header__title">Research Dashboard</h2>
           <p class="view-header__subtitle">Adversarial Training Experiment Analysis</p>
-          <button class="btn btn--outline btn--sm" data-action="logout">Sign Out</button>
+          <div class="thesis-view__actions">
+            <button class="btn btn--outline btn--sm" data-action="open-thesis">Thesis Hub</button>
+            <button class="btn btn--outline btn--sm" data-action="logout">Sign Out</button>
+          </div>
         </header>
 
         <section class="research-view__kpis" id="kpi-row" aria-label="Key Performance Indicators"></section>
@@ -45,6 +48,10 @@ export class ResearchView extends BaseView {
         <section class="research-view__attack" aria-label="PGD Attack Simulator">
           <h3>PGD Attack Simulator</h3>
           <form class="attack-form" id="attack-form">
+            <div class="attack-form__field attack-form__field--file">
+              <label for="atk-image">Dermoscopic Image</label>
+              <input type="file" id="atk-image" accept="image/*" class="input" required />
+            </div>
             <div class="attack-form__field">
               <label for="atk-epsilon">ε (L∞ budget)</label>
               <input type="number" id="atk-epsilon" value="0.01" min="0.001" max="0.1" step="0.001" class="input" />
@@ -71,16 +78,22 @@ export class ResearchView extends BaseView {
     if (form) {
       form.addEventListener('submit', (e) => {
         e.preventDefault();
+        const imageInput = this._container.querySelector('#atk-image');
+        const imageFile = imageInput?.files?.[0] ?? null;
         const config = {
           epsilon: parseFloat(this._container.querySelector('#atk-epsilon').value),
           pgd_steps: parseInt(this._container.querySelector('#atk-steps').value, 10),
           pgd_alpha: parseFloat(this._container.querySelector('#atk-alpha').value)
         };
-        this._controller?.runAttackSimulation(config);
+        this._controller?.runAttackSimulation(config, imageFile);
       }, { signal });
     }
 
     this._container.addEventListener('click', (e) => {
+      if (e.target.closest('[data-action="open-thesis"]')) {
+        EventBus.emit('navigate', { path: '#/thesis' });
+        return;
+      }
       if (e.target.closest('[data-action="logout"]')) {
         this._store.setState({ auth: { user: null, role: null, isAuthenticated: false } });
         EventBus.emit('auth:logout');
@@ -101,7 +114,7 @@ export class ResearchView extends BaseView {
     }
     if (research.versionHistory?.length) {
       this._renderExperimentTable(research.versionHistory);
-      this._renderCharts(research.versionHistory);
+      this._renderCharts(research.versionHistory, research.tradesBetaSweep);
     }
   }
 
@@ -138,14 +151,14 @@ export class ResearchView extends BaseView {
     }
   }
 
-  _renderCharts(configs) {
+  _renderCharts(configs, tradesBetaSweep) {
     const tradeoffSlot = this._container.querySelector('#tradeoff-slot');
     if (tradeoffSlot && !tradeoffSlot.querySelector('canvas')) {
       this._mountChild(new TradeoffChart(tradeoffSlot, configs));
     }
     const tradesSlot = this._container.querySelector('#trades-slot');
     if (tradesSlot && !tradesSlot.querySelector('canvas')) {
-      this._mountChild(new TRADESBetaSweepChart(tradesSlot));
+      this._mountChild(new TRADESBetaSweepChart(tradesSlot, tradesBetaSweep));
     }
   }
 

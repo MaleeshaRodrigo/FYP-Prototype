@@ -6,6 +6,7 @@ import { BaseComponent } from './BaseComponent.js';
  */
 export class TRADESBetaSweepChart extends BaseComponent {
   #betaResults;
+  #isLiveData;
   #chart = null;
 
   static DEFAULT_DATA = [
@@ -21,15 +22,18 @@ export class TRADESBetaSweepChart extends BaseComponent {
    */
   constructor(container, betaResults) {
     super(container);
-    this.#betaResults = betaResults?.length ? betaResults : TRADESBetaSweepChart.DEFAULT_DATA;
+    this.#isLiveData = Array.isArray(betaResults) && betaResults.length > 0;
+    this.#betaResults = this.#isLiveData ? betaResults : TRADESBetaSweepChart.DEFAULT_DATA;
   }
 
   render() {
+    const badgeClass = this.#isLiveData ? 'badge--active' : 'badge--pending';
+    const badgeText = this.#isLiveData ? 'live-data' : 'v9-pending';
     return `
       <div class="trades-chart">
         <div class="trades-chart__header">
-          <h4 class="trades-chart__title">TRADES β Sweep — Expected Performance</h4>
-          <span class="badge badge--pending">v9-PENDING</span>
+          <h4 class="trades-chart__title">TRADES β Sweep</h4>
+          <span class="badge ${badgeClass}">${badgeText}</span>
         </div>
         <canvas id="trades-canvas" width="600" height="350"></canvas>
       </div>
@@ -80,7 +84,8 @@ export class TRADESBetaSweepChart extends BaseComponent {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 1.9,
         scales: {
           x: { title: { display: true, text: 'β (TRADES regularisation)' } },
           y: { title: { display: true, text: 'Metric Value' }, min: 0, max: 1.0 }

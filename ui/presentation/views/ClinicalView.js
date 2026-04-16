@@ -116,7 +116,7 @@ export class ClinicalView extends BaseView {
     if (!area) return;
     area.innerHTML = '';
     const viewer = new GradCAMViewer(area, {
-      imageUrl: '',
+      imageUrl: data.original_url ?? '',
       heatmapData: data.heatmap_data ?? data
     });
     this._mountChild(viewer);

@@ -47,4 +47,44 @@ export class BaseApiService {
   async updateParameters(params) {
     throw new Error('Not implemented');
   }
+
+  /** @returns {Promise<Object>} */
+  async getGAParameters() {
+    throw new Error('Not implemented');
+  }
+
+  /** @param {string} versionId @returns {Promise<Object>} */
+  async activateModel(versionId) {
+    throw new Error('Not implemented');
+  }
+
+  /** @returns {Promise<Object>} */
+  async getThesisSummary() {
+    throw new Error('Not implemented');
+  }
+
+  /** @returns {Promise<Object>} */
+  async getThesisSweep() {
+    throw new Error('Not implemented');
+  }
+
+  /** @returns {Promise<Array>} */
+  async getTradesBetaSweep() {
+    throw new Error('Not implemented');
+  }
+
+  /** @returns {Promise<Object>} */
+  async getThesisExportJson() {
+    throw new Error('Not implemented');
+  }
+
+  /** @returns {Promise<string>} */
+  async getThesisExportCsv() {
+    throw new Error('Not implemented');
+  }
+
+  /** @param {string} baselineVersion @param {string} candidateVersion @returns {Promise<Object>} */
+  async getMetricsComparison(baselineVersion, candidateVersion) {
+    throw new Error('Not implemented');
+  }
 }

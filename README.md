@@ -8,6 +8,11 @@ This repository contains:
 - `shared/`: Shared constants and mock fixtures
 - `.github/workflows/`: Azure deployment pipelines
 
+## Guides
+
+- Local setup: `docs/LOCAL_SETUP_GUIDE.md`
+- Deployment: `docs/DEPLOYMENT_GUIDE.md`
+
 ## Highlights
 
 - Role-based portals: clinician, research, admin, and system admin
@@ -128,6 +133,7 @@ When `env=production` is set, the frontend uses the production API service imple
 ## Key Frontend Routes
 
 - `#/login`
+- `#/thesis`
 - `#/clinical`
 - `#/research`
 - `#/admin`
@@ -139,6 +145,12 @@ When `env=production` is set, the frontend uses the production API service imple
 - `GET /api/gradcam/{image_id}`
 - `POST /api/attack/simulate`
 - `GET /api/metrics/{version}`
+- `GET /api/metrics/comparison/{baseline_version}/{candidate_version}`
+- `GET /api/metrics/thesis/summary`
+- `GET /api/metrics/thesis/sweep`
+- `GET /api/metrics/thesis/trades-beta-sweep`
+- `GET /api/metrics/thesis/export/json`
+- `GET /api/metrics/thesis/export/csv`
 - `GET /api/experiments`
 - `GET /api/admin/usage`
 - `GET /api/admin/audit`

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
 from .core.model_loader import load_model
+from .core.runtime_state import get_active_version
 from .routers import admin, attack, experiments, gradcam, metrics, predict, system
 
 app = FastAPI(
@@ -42,5 +43,6 @@ async def health_check() -> dict:
     return {
         "status": "healthy",
         "version": settings.APP_VERSION,
+        "active_version": get_active_version(),
         "model": settings.ACTIVE_CHECKPOINT,
     }

@@ -1,0 +1,9 @@
+{
+  "active_version": "v8",
+  "active_checkpoint": "stage2_v8.pth",
+  "ga_parameters": {
+    "weight_cnn": 0.54,
+    "temperature": 0.76,
+    "threshold": 0.39
+  }
+}

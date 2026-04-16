@@ -80,7 +80,8 @@ export class TradeoffChart extends BaseComponent {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
+        aspectRatio: 1.9,
         scales: {
           x: {
             title: { display: true, text: 'Adversarial Loss Weight (w_adv)' },
