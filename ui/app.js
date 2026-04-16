@@ -20,11 +20,15 @@ import { SystemController } from './application/SystemController.js';
  * Configures DI container, registers routes, initialises the router.
  */
 async function bootstrap() {
-  const env = new URLSearchParams(window.location.search).get('env') === 'production'
+  const searchParams = new URLSearchParams(window.location.search);
+  const env = searchParams.get('env') === 'production'
     ? 'production'
     : 'mock';
+  const apiBaseUrl = searchParams.get('apiBaseUrl')
+    || window.HARE_API_BASE_URL
+    || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : '');
 
-  await ServiceLocator.configure(env);
+  await ServiceLocator.configure(env, { apiBaseUrl });
 
   const store = new StateStore();
   ServiceLocator.register('store', store);

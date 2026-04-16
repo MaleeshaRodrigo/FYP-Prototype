@@ -50,6 +50,50 @@ This repository contains:
 - `pip`
 - (Optional) Docker
 
+## Environment Variables
+
+Create a local environment file from the template:
+
+```bash
+copy .env.example .env
+```
+
+If you run the API from inside the `api/` directory instead of the repository root:
+
+```bash
+copy api\.env.example api\.env
+```
+
+Required for production-like API runs:
+- `JWT_SECRET`: set to a strong random value
+
+The API reads `.env` automatically from the repository root (or from `api/.env` if present).
+
+## Model Checkpoint Placement
+
+Place checkpoints in the repository-level `models/` folder.
+
+Default active checkpoint:
+- `stage2_v8.pth`
+
+These values are controlled by:
+- `MODEL_DIR`
+- `ACTIVE_CHECKPOINT`
+
+Example for root-based runs (`.env`):
+
+```env
+MODEL_DIR=./models
+ACTIVE_CHECKPOINT=stage2_v8.pth
+```
+
+Example for API-folder runs (`api/.env`):
+
+```env
+MODEL_DIR=../models
+ACTIVE_CHECKPOINT=stage2_v8.pth
+```
+
 ## Run the API (FastAPI)
 
 From repository root:
@@ -58,6 +102,7 @@ From repository root:
 py -3.11 -m venv .venv
 .venv\Scripts\activate
 pip install -r api/requirements.txt
+copy .env.example .env
 python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -75,9 +120,10 @@ python -m http.server 8080
 
 Open:
 - Mock mode (default): `http://localhost:8080/ui/`
-- Production service mode: `http://localhost:8080/ui/?env=production`
+- Production service mode (local API): `http://localhost:8080/ui/?env=production&apiBaseUrl=http://localhost:8000`
 
 When `env=production` is set, the frontend uses the production API service implementation.
+`apiBaseUrl` is optional in hosted deployments, but recommended for local development when UI and API run on different ports.
 
 ## Key Frontend Routes
 
