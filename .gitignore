@@ -1,0 +1,51 @@
+# -----------------------------
+# Environment and secrets
+# -----------------------------
+.venv/
+.env
+.env.*
+*.env
+
+# -----------------------------
+# Python cache and build files
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+
+# -----------------------------
+# Model/checkpoint artifacts
+# -----------------------------
+*.pt
+*.pth
+*.ckpt
+
+# -----------------------------
+# Logs and runtime files
+# -----------------------------
+*.log
+*.pid
+
+# -----------------------------
+# IDE/Editor files
+# -----------------------------
+.cursor/
+.vscode/
+.idea/
+
+# -----------------------------
+# OS files
+# -----------------------------
+.DS_Store
+Thumbs.db
