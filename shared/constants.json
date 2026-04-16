@@ -1,0 +1,25 @@
+{
+  "clinicalTargets": {
+    "auc": 0.80,
+    "balancedAccuracy": 0.65,
+    "melanomaSensitivity": 0.40,
+    "nonMelSpecificity": 0.82
+  },
+  "gaDefaults": {
+    "alpha": 0.5467,
+    "tau": 0.7671,
+    "theta": 0.3985
+  },
+  "borderlineMargin": 0.05,
+  "phaseTransitionThreshold": 0.225,
+  "modelVersions": [
+    { "id": "stage1", "label": "Stage 1 — Clean Baseline", "checkpoint": "stage1_baseline.pth", "stage": 1 },
+    { "id": "v3", "label": "Stage 2 v3 — PGD-AT (w_adv=0.40)", "checkpoint": "stage2_v3.pth", "stage": 2 },
+    { "id": "v4", "label": "Stage 2 v4 — PGD-AT (w_adv=0.40, lr↓)", "checkpoint": "stage2_v4.pth", "stage": 2 },
+    { "id": "v5", "label": "Stage 2 v5 — PGD-AT (w_adv=0.25)", "checkpoint": "stage2_v5.pth", "stage": 2 },
+    { "id": "v6", "label": "Stage 2 v6 — PGD-AT (w_adv=0.25, ep↑)", "checkpoint": "stage2_v6.pth", "stage": 2 },
+    { "id": "v7", "label": "Stage 2 v7 — PGD-AT (w_adv=0.15)", "checkpoint": "stage2_v7.pth", "stage": 2 },
+    { "id": "v8", "label": "Stage 2 v8 — PGD-AT (w_adv=0.05)", "checkpoint": "stage2_v8.pth", "stage": 2 },
+    { "id": "v9-trades", "label": "Stage 3 v9 — TRADES (pending)", "checkpoint": "stage3_v9_trades.pth", "stage": 3 }
+  ]
+}

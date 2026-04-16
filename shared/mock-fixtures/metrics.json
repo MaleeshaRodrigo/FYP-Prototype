@@ -1,0 +1,34 @@
+{
+  "stage1": {
+    "auc": 0.8741,
+    "balancedAccuracy": 0.7983,
+    "melanomaSensitivity": 0.7549,
+    "nonMelSpecificity": 0.8416,
+    "modelVersion": "stage1",
+    "evaluationType": "clean"
+  },
+  "v8_clean": {
+    "auc": 0.8711,
+    "balancedAccuracy": 0.7515,
+    "melanomaSensitivity": 0.5573,
+    "nonMelSpecificity": 0.9457,
+    "modelVersion": "v8",
+    "evaluationType": "clean"
+  },
+  "v8_adversarial": {
+    "auc": null,
+    "balancedAccuracy": 0.1432,
+    "melanomaSensitivity": 0.085,
+    "nonMelSpecificity": null,
+    "modelVersion": "v8",
+    "evaluationType": "adversarial"
+  },
+  "v8_ga": {
+    "auc": 0.8711,
+    "balancedAccuracy": 0.7980,
+    "melanomaSensitivity": 0.7550,
+    "nonMelSpecificity": 0.8416,
+    "modelVersion": "v8_ga",
+    "evaluationType": "clean"
+  }
+}

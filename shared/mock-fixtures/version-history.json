@@ -1,0 +1,8 @@
+[
+  { "version": "v3", "adv_loss_weight": 0.40, "epsilon": 0.03, "pgd_steps": 5, "pgd_alpha": 0.007, "lr": 2e-5, "epochs": 10, "best_auc": 0.8253, "best_bal_acc": 0.5876, "best_sens_mel": 0.221, "adv_bal_acc": null, "status": "partial" },
+  { "version": "v4", "adv_loss_weight": 0.40, "epsilon": 0.03, "pgd_steps": 5, "pgd_alpha": 0.003, "lr": 5e-6, "epochs": 5,  "best_auc": 0.7873, "best_bal_acc": 0.5018, "best_sens_mel": 0.004, "adv_bal_acc": null, "status": "failed" },
+  { "version": "v5", "adv_loss_weight": 0.25, "epsilon": 0.01, "pgd_steps": 7, "pgd_alpha": 0.003, "lr": 1.5e-5, "epochs": 15, "best_auc": 0.7912, "best_bal_acc": 0.6374, "best_sens_mel": 0.293, "adv_bal_acc": null, "status": "partial" },
+  { "version": "v6", "adv_loss_weight": 0.25, "epsilon": 0.01, "pgd_steps": 7, "pgd_alpha": 0.003, "lr": 1e-5,  "epochs": 20, "best_auc": 0.8100, "best_bal_acc": 0.6101, "best_sens_mel": 0.198, "adv_bal_acc": null, "status": "partial" },
+  { "version": "v7", "adv_loss_weight": 0.15, "epsilon": 0.02, "pgd_steps": 7, "pgd_alpha": 0.003, "lr": 8e-6,  "epochs": 10, "best_auc": 0.8311, "best_bal_acc": 0.6443, "best_sens_mel": 0.287, "adv_bal_acc": null, "status": "partial" },
+  { "version": "v8", "adv_loss_weight": 0.05, "epsilon": 0.01, "pgd_steps": 3, "pgd_alpha": 0.003, "lr": 5e-6,  "epochs": 8,  "best_auc": 0.8711, "best_bal_acc": 0.7515, "best_sens_mel": 0.5573, "adv_bal_acc": 0.1432, "status": "active" }
+]

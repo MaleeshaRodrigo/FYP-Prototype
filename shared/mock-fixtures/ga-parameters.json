@@ -1,0 +1,9 @@
+{
+  "alpha": 0.5467,
+  "tau": 0.7671,
+  "theta": 0.3985,
+  "recoveredBalAcc": 0.7980,
+  "generations": 30,
+  "populationSize": 20,
+  "fitnessMetric": "balanced_accuracy"
+}

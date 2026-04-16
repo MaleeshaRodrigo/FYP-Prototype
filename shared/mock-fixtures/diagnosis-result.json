@@ -1,0 +1,10 @@
+{
+  "image_id": "img_20250415_001",
+  "prediction": "MEL",
+  "confidence": 0.7232,
+  "threshold": 0.3985,
+  "model_version": "v8-pgd-at",
+  "robustness_tier": "PARTIAL",
+  "inference_time_ms": 142,
+  "timestamp": "2025-04-15T10:32:00Z"
+}

@@ -1,0 +1,32 @@
+name: Deploy API to Azure Container Apps
+on:
+  push:
+    branches: [main]
+    paths: ['api/**']
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/hare-api:${{ github.sha }} ./api
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/hare-api:${{ github.sha }}
+
+      - name: Deploy to Azure Container Apps
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}/api
+          acrName: ${{ secrets.ACR_NAME }}
+          containerAppName: hare-api
+          resourceGroup: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/hare-api:${{ github.sha }}
