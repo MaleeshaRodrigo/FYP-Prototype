@@ -1,6 +1,5 @@
 .venv
 __pycache__
-SYSTEM_DIAGRAMS.md
 *.ipynb
 .env
 *.drawio
