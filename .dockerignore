@@ -1,0 +1,19 @@
+# Exclude model files from Docker build
+models/*.pth
+*.pth
+
+# Standard ignore patterns
+.git
+.gitignore
+.dockerignore
+.env
+.venv
+venv/
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.DS_Store
+*.md
+!requirements.txt
