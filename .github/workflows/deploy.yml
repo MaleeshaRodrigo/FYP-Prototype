@@ -28,6 +28,6 @@ jobs:
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'hare-prototype-app'
+          app-name: 'hare-derm'
           images: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
