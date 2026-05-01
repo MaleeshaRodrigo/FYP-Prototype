@@ -4,6 +4,8 @@
 
 The **HARE Skin Lesion Classifier** is an AI-powered web application that performs **binary classification** of skin lesions: Melanoma (Malignant) vs Melanocytic Nevus (Benign). It provides high-accuracy predictions, visual explanations via Grad-CAM with attention concentration scores, and demonstrates model robustness through FGSM adversarial attack simulation.
 
+The thesis-demo version now requires user login before protected functions are available. Patient users can manage their own image history and request robust analysis. Researcher users can approve accounts, inspect audit events, and run technical attack simulations.
+
 **Key Features:**
 - ✅ Binary skin lesion classification (Melanoma vs Nevus)
 - 🔥 Grad-CAM visualization with **attention dispersion score** showing model focus
@@ -71,13 +73,32 @@ streamlit run app.py
 
 The app will launch at `http://localhost:8501` in your default browser.
 
+For the authenticated thesis-demo workflow, configure these optional environment variables before launch:
+
+```powershell
+$env:DATABASE_URL="postgresql://user:password@host:5432/dbname"
+$env:AZURE_STORAGE_CONNECTION_STRING="<your Azure Storage connection string>"
+$env:AZURE_IMAGE_CONTAINER="hare-images"
+$env:ADMIN_BOOTSTRAP_EMAIL="researcher@example.com"
+$env:ADMIN_BOOTSTRAP_PASSWORD="ChangeThisPassword123"
+```
+
+If `DATABASE_URL` or Azure image storage is not set, the app uses a local development fallback under `data/`. Use Azure-managed services for deployment evidence.
+
 ---
 
 ## How to Use
 
-### 1. Provide a Skin Lesion Image
+### 1. Sign In or Register
 
-- Click **"Upload a skin lesion image"** button
+- Register with an email address and password.
+- A researcher must approve new patient accounts before first login.
+- Researcher accounts can be bootstrapped using `ADMIN_BOOTSTRAP_EMAIL` and `ADMIN_BOOTSTRAP_PASSWORD`.
+
+### 2. Provide a Skin Lesion Image
+
+- Open **Image History**
+- Upload a JPEG, PNG, or DICOM image
 - Select a PNG, JPG, or JPEG file from your device
 - The image will appear on the left side of the screen
 - Camera capture is optional and disabled by default. The browser camera permission prompt only appears after you explicitly enable camera capture in the app.
@@ -87,9 +108,9 @@ The app will launch at `http://localhost:8501` in your default browser.
 - Recommended resolution: 224×224 pixels or larger
 - Recommended file size: < 5 MB
 
-### 2. View the Prediction
+### 3. View the Prediction
 
-After uploading, the right side displays:
+After selecting a stored image, open **Analysis Report** and run robust analysis. The report displays:
 
 **Specific Diagnosis:**
 - Shows the predicted skin lesion type: "Melanocytic Nevus (Benign)" or "Melanoma (Malignant)"
@@ -113,7 +134,7 @@ After uploading, the right side displays:
 
 ---
 
-### 3. Inspect the Grad-CAM Heatmap
+### 4. Inspect the Grad-CAM Heatmap
 
 The **Grad-CAM Heatmap** section visualizes which regions of the image the model focused on for its decision.
 
@@ -140,7 +161,7 @@ The **Grad-CAM Heatmap** section visualizes which regions of the image the model
 
 ---
 
-### 4. Simulate an Adversarial Attack
+### 5. Simulate an Adversarial Attack
 
 Click the **"🎯 Simulate FGSM Attack"** button to test model robustness.
 

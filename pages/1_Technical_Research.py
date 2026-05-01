@@ -11,6 +11,10 @@ import streamlit as st
 import torch
 from PIL import Image
 
+from auth_utils import require_role
+from database import db, utc_now
+from image_storage import load_image
+from model_service import load_model
 from utils import (
     THESIS_ARCHITECTURE_POINTS,
     THESIS_FAILURE_MODE_POINTS,
@@ -20,7 +24,6 @@ from utils import (
     fgsm_attack,
     image_from_upload,
     image_to_png_bytes,
-    load_model_runtime,
     overlay_heatmap,
     pgd_attack,
     predict,
@@ -37,33 +40,55 @@ st.set_page_config(
 
 SESSION_IMAGE_KEY = "hare_active_image_bytes"
 SESSION_SOURCE_KEY = "hare_active_image_source"
+SESSION_IMAGE_ID_KEY = "hare_active_image_id"
 
 
-@st.cache_resource(show_spinner=False)
-def load_model():
-    return load_model_runtime(".")
+user = require_role("researcher")
 
 
-def store_active_image(image: Image.Image, source_label: str) -> None:
+def store_active_image(image: Image.Image, source_label: str, image_id: Optional[int] = None) -> None:
     st.session_state[SESSION_IMAGE_KEY] = image_to_png_bytes(image)
     st.session_state[SESSION_SOURCE_KEY] = source_label
+    if image_id is None:
+        st.session_state.pop(SESSION_IMAGE_ID_KEY, None)
+    else:
+        st.session_state[SESSION_IMAGE_ID_KEY] = image_id
 
 
-def read_active_image() -> Tuple[Optional[Image.Image], Optional[str]]:
+def read_active_image() -> Tuple[Optional[Image.Image], Optional[str], Optional[int]]:
     image_bytes = st.session_state.get(SESSION_IMAGE_KEY)
     if not image_bytes:
-        return None, None
-    return Image.open(BytesIO(image_bytes)).convert("RGB"), st.session_state.get(SESSION_SOURCE_KEY)
+        return None, None, None
+    return (
+        Image.open(BytesIO(image_bytes)).convert("RGB"),
+        st.session_state.get(SESSION_SOURCE_KEY),
+        st.session_state.get(SESSION_IMAGE_ID_KEY),
+    )
 
 
-def resolve_demo_image() -> Tuple[Optional[Image.Image], Optional[str]]:
-    existing_image, existing_source = read_active_image()
+def resolve_demo_image() -> Tuple[Optional[Image.Image], Optional[str], Optional[int]]:
+    existing_image, existing_source, existing_image_id = read_active_image()
     if existing_image is not None:
         st.info(f"Using the latest image from the screening workflow: {existing_source}. You can replace it below.")
 
-    upload_col, camera_col = st.columns(2)
+    stored_col, upload_col, camera_col = st.columns(3)
     selected_image = existing_image
     source_label = existing_source
+    image_id = existing_image_id
+
+    with stored_col:
+        records = db.fetch_all("SELECT * FROM image_records WHERE status = 'active' ORDER BY created_at DESC LIMIT 100")
+        if records:
+            labels = [f"{row['original_filename']} | user {row['user_id']} | ID {row['id']}" for row in records]
+            selected = st.selectbox("Use stored image", ["No stored image"] + labels)
+            if selected != "No stored image":
+                index = labels.index(selected)
+                record = records[index]
+                selected_image = load_image(record)
+                source_label = f"Stored image ID {record['id']}"
+                image_id = int(record["id"])
+        else:
+            st.info("No stored images are available yet.")
 
     with upload_col:
         uploaded_file = st.file_uploader(
@@ -74,6 +99,7 @@ def resolve_demo_image() -> Tuple[Optional[Image.Image], Optional[str]]:
         if uploaded_file is not None:
             selected_image = image_from_upload(uploaded_file)
             source_label = "Technical upload"
+            image_id = None
 
     with camera_col:
         st.caption(
@@ -92,13 +118,14 @@ def resolve_demo_image() -> Tuple[Optional[Image.Image], Optional[str]]:
             if camera_file is not None:
                 selected_image = image_from_upload(camera_file)
                 source_label = "Technical camera capture"
+                image_id = None
         else:
             st.info("Camera capture is off. Upload an image instead, or enable camera capture when needed.")
 
     if selected_image is not None and source_label is not None:
-        store_active_image(selected_image, source_label)
+        store_active_image(selected_image, source_label, image_id)
 
-    return selected_image, source_label
+    return selected_image, source_label, image_id
 
 
 st.title("HARE Technical Research View")
@@ -157,7 +184,7 @@ st.info(
     "PGD-20 evaluation reported in the thesis."
 )
 
-image, source = resolve_demo_image()
+image, source, image_id = resolve_demo_image()
 if image is None:
     st.stop()
 
@@ -250,3 +277,29 @@ with attack_col:
             "This interactive demo uses the current image and the model's present prediction as the attack target. "
             "The thesis metrics come from held-out ISIC 2019 evaluation, not from this single example."
         )
+        if image_id is not None:
+            simulation_id = db.execute_returning_id(
+                """
+                INSERT INTO attack_simulations (
+                    image_id, user_id, attack_type, epsilon, before_label,
+                    after_label, changed, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    image_id,
+                    int(user["id"]),
+                    attack_name,
+                    epsilon,
+                    prediction.predicted_label,
+                    adv_prediction.predicted_label,
+                    adv_prediction.predicted_label != prediction.predicted_label,
+                    utc_now(),
+                ),
+            )
+            db.audit(
+                "attack_simulation",
+                actor_user_id=int(user["id"]),
+                target_resource=f"attack_simulation:{simulation_id}",
+                details={"image_id": image_id, "attack": attack_name, "epsilon": epsilon},
+            )

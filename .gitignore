@@ -3,6 +3,7 @@ model-development
 .streamlit
 .cursor
 __pycache__
+data/
 *.ipynb
 .env
 *.drawio
