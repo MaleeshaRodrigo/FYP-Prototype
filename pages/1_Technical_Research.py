@@ -76,13 +76,24 @@ def resolve_demo_image() -> Tuple[Optional[Image.Image], Optional[str]]:
             source_label = "Technical upload"
 
     with camera_col:
-        camera_file = st.camera_input(
-            "Capture a technical demo image",
-            key="technical_camera",
+        st.caption(
+            "Camera access is optional and only requested after you enable capture for this session."
         )
-        if camera_file is not None:
-            selected_image = image_from_upload(camera_file)
-            source_label = "Technical camera capture"
+        camera_enabled = st.checkbox(
+            "Enable camera for demo capture",
+            key="technical_camera_consent",
+            help="Uploaded images work without camera permission.",
+        )
+        if camera_enabled:
+            camera_file = st.camera_input(
+                "Capture a technical demo image",
+                key="technical_camera",
+            )
+            if camera_file is not None:
+                selected_image = image_from_upload(camera_file)
+                source_label = "Technical camera capture"
+        else:
+            st.info("Camera capture is off. Upload an image instead, or enable camera capture when needed.")
 
     if selected_image is not None and source_label is not None:
         store_active_image(selected_image, source_label)

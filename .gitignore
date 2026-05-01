@@ -1,4 +1,7 @@
 .venv
+model-development
+.streamlit
+.cursor
 __pycache__
 *.ipynb
 .env

@@ -75,13 +75,25 @@ def resolve_input_image() -> Tuple[Optional[Image.Image], Optional[str]]:
             source_label = "Uploaded image"
 
     with camera_tab:
-        camera_file = st.camera_input(
-            "Capture a lesion image",
-            help="Camera captures are supported for screening exploration, but the thesis metrics were validated on dermoscopic images.",
+        st.caption(
+            "Camera access is optional. The app will only request browser camera permission "
+            "after you explicitly enable capture for this session."
         )
-        if camera_file is not None:
-            selected_image = image_from_upload(camera_file)
-            source_label = "Camera capture"
+        camera_enabled = st.checkbox(
+            "Enable camera for one lesion photo",
+            key="home_camera_consent",
+            help="Use this only if you are comfortable granting browser camera access. Uploaded images work without camera permission.",
+        )
+        if camera_enabled:
+            camera_file = st.camera_input(
+                "Capture a lesion image",
+                help="Camera captures are supported for screening exploration, but the thesis metrics were validated on dermoscopic images.",
+            )
+            if camera_file is not None:
+                selected_image = image_from_upload(camera_file)
+                source_label = "Camera capture"
+        else:
+            st.info("Camera capture is off. Upload an image instead, or enable camera capture when you are ready.")
 
     if selected_image is not None and source_label is not None:
         store_active_image(selected_image, source_label)
@@ -187,6 +199,7 @@ with st.expander("Important use notes"):
         """
         - This is a research prototype, not a regulated medical device.
         - The thesis evaluation used dermoscopic ISIC 2019 images.
+        - Camera capture is optional and is only activated after explicit user consent in the browser session.
         - Camera captures are available for usability, but they should not be interpreted as separately validated consumer-photo performance.
         - The Technical Research page contains the thesis operating point, architecture, and attack simulation details.
         """
