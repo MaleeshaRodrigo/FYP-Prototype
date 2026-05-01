@@ -1,92 +1,64 @@
 """
-HARE_Ensemble: Hybrid Attention ResNet Ensemble for Skin Lesion Classification
+Thesis-aligned HARE model definition.
 
-This module defines the HARE_Ensemble model architecture, which combines:
-- ResNet50 (CNN) for texture and local feature extraction (2048-dim)
-- Vision Transformer (ViT) for global structure understanding (768-dim)
-- Fusion layer optimized via Genetic Algorithm for adversarial robustness
-
-Binary Classification: Class 0 = Nevus (Benign), Class 1 = Melanoma (Malignant)
-
-Citation:
-  HARE: Hybrid Adversarially-Robust Ensemble for Skin Cancer Detection (FYP)
-  Uses OATGA (Optimization-Augmented Training with Genetic Algorithm) for fusion optimization
+This runtime mirrors the architecture described in `HARE_Thesis_Draft.md` and
+the notebooks in `model-development`.
 """
+
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torchvision import models
 import timm
 
 
-class HARE_Ensemble(nn.Module):
-    """
-    Hybrid Attention ResNet Ensemble for binary skin lesion classification.
-    
-    Architecture:
-    - ResNet50 (ImageNet1K_V2 pretrained) → 2048-dim features
-    - ViT Base-16/224 (ImageNet pretrained) → 768-dim features
-    - Fusion Layer (FC 2816 → 512, evolved by GA) → ReLU + Dropout
-    - Classifier (FC 512 → 2 classes)
-    
-    Args:
-        num_classes (int): Number of output classes. Default: 2 (Nevus, Melanoma)
-    """
-    
-    def __init__(self, num_classes: int = 2):
+class HAREThesisModel(nn.Module):
+    """Hybrid ResNet-50 + ViT-Small model with multi-head outputs."""
+
+    def __init__(
+        self,
+        num_classes: int = 2,
+        dropout: float = 0.35,
+        pretrained_backbones: bool = False,
+        use_vit_grad_checkpoint: bool = False,
+    ) -> None:
         super().__init__()
-        
-        # ============ ResNet50 Backbone ============
-        # Pretrained on ImageNet1K_V2 for texture/local feature extraction
-        self.cnn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
-        # Remove the final fully-connected layer; use intermediate features
+
+        cnn_weights = models.ResNet50_Weights.IMAGENET1K_V2 if pretrained_backbones else None
+        self.cnn = models.resnet50(weights=cnn_weights)
+        cnn_dim = self.cnn.fc.in_features
         self.cnn.fc = nn.Identity()
-        
-        # ============ Vision Transformer Backbone ============
-        # Pretrained on ImageNet for global structure understanding
+
         self.vit = timm.create_model(
-            "vit_base_patch16_224",
-            pretrained=True,
-            num_classes=0  # Extract features, no classification head
+            "vit_small_patch16_224",
+            pretrained=pretrained_backbones,
+            num_classes=0,
         )
-        
-        # ============ Fusion & Classification ============
-        # Fusion layer: concatenate CNN (2048) + ViT (768) features → 512 latent
-        # This layer is the "novelty" of HARE: optimized via Genetic Algorithm (OATGA)
-        # for balanced accuracy (30%) and adversarial robustness (70%) trade-off
-        self.fusion_fc = nn.Linear(2048 + 768, 512)
-        
-        # Final classifier: 512-dim latent → 2 classes
-        self.classifier = nn.Linear(512, num_classes)
-        
-        # Dropout for regularization (applied after fusion)
-        self.dropout = nn.Dropout(0.5)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass: Fuse CNN and ViT features, then classify.
-        
-        Args:
-            x (torch.Tensor): Input image tensor of shape (B, 3, 224, 224)
-        
-        Returns:
-            torch.Tensor: Logits of shape (B, num_classes)
-        """
-        # Extract CNN features (B, 2048)
-        f_cnn = self.cnn(x)
-        
-        # Extract ViT features (B, 768)
-        f_vit = self.vit(x)
-        
-        # Concatenate features along channel dimension (B, 2816)
-        combined = torch.cat((f_cnn, f_vit), dim=1)
-        
-        # Fuse features through GA-optimized fusion layer + ReLU activation
-        x = F.relu(self.fusion_fc(combined))
-        
-        # Apply dropout for robustness
-        x = self.dropout(x)
-        
-        # Classify: fusion features → logits (B, 2)
-        return self.classifier(x)
+        if use_vit_grad_checkpoint and hasattr(self.vit, "set_grad_checkpointing"):
+            self.vit.set_grad_checkpointing(True)
+        vit_dim = self.vit.num_features
+
+        self.cnn_head = nn.Linear(cnn_dim, num_classes)
+        self.vit_head = nn.Linear(vit_dim, num_classes)
+        self.fusion = nn.Sequential(
+            nn.Linear(cnn_dim + vit_dim, 512),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        )
+        self.fusion_head = nn.Linear(512, num_classes)
+
+    def forward(self, x: torch.Tensor) -> dict[str, torch.Tensor]:
+        cnn_feat = self.cnn(x)
+        vit_feat = self.vit(x)
+        fused_feat = self.fusion(torch.cat([cnn_feat, vit_feat], dim=1))
+        return {
+            "cnn_features": cnn_feat,
+            "vit_features": vit_feat,
+            "cnn_logits": self.cnn_head(cnn_feat),
+            "vit_logits": self.vit_head(vit_feat),
+            "fusion_logits": self.fusion_head(fused_feat),
+        }
+
+
+HARE_Ensemble = HAREThesisModel
