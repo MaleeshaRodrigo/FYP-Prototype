@@ -75,11 +75,12 @@ The app will launch at `http://localhost:8501` in your default browser.
 
 ## How to Use
 
-### 1. Upload a Skin Lesion Image
+### 1. Provide a Skin Lesion Image
 
 - Click **"Upload a skin lesion image"** button
 - Select a PNG, JPG, or JPEG file from your device
 - The image will appear on the left side of the screen
+- Camera capture is optional and disabled by default. The browser camera permission prompt only appears after you explicitly enable camera capture in the app.
 
 **Supported Image Formats:**
 - `.png`, `.jpg`, `.jpeg`
@@ -320,6 +321,7 @@ After training HARE on clean images, OATGA fine-tunes the model to be adversaria
 - **Not a medical device** - Do not use as primary diagnostic tool
 - **Not FDA-approved** - For demonstration purposes only
 - **Always consult a dermatologist** for skin lesion diagnosis
+- **Camera consent** - Camera access is optional, disabled by default, and should only be enabled by the person using the app
 - **Binary classification only** - Designed for Melanoma vs Nevus detection (not other skin conditions)
 - **Accuracy varies** - Model trained on ISIC 2019 dataset; performance depends on image quality
 - **No liability** - Authors are not responsible for misdiagnosis or incorrect predictions
