@@ -1,0 +1,33 @@
+name: Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY_LOGIN_SERVER: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  IMAGE_NAME: hare-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build and push Docker image
+        run: |
+          docker build -t $REGISTRY_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} .
+          docker tag $REGISTRY_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }} $REGISTRY_LOGIN_SERVER/$IMAGE_NAME:latest
+          docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD $REGISTRY_LOGIN_SERVER
+          docker push $REGISTRY_LOGIN_SERVER/$IMAGE_NAME:${{ github.sha }}
+          docker push $REGISTRY_LOGIN_SERVER/$IMAGE_NAME:latest
+      
+      - name: Deploy to App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'hare-prototype-app'
+          images: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
